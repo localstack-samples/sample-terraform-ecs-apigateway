@@ -99,7 +99,7 @@ Ensure a `build` directory is created in the `client-application-react` director
 
 ## Deploying the web application
 
-To deploy the web application, we will make an S3 bucket and sync the `build` directory to the S3 bucket. Run the following commands:
+To deploy the web application, we will make an S3 bucket and sync the `build` directory to the S3 bucket. Run the following commands from the `client-application-react` directory:
 
 ```shell
 awslocal s3 mb s3://sample-app

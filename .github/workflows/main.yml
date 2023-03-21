@@ -31,7 +31,6 @@ jobs:
         env:
           LOCALSTACK_API_KEY: ${{ secrets.LOCALSTACK_API_KEY }}
           DNS_ADDRESS: 0
-          EDGE_PORT: 4566
         run: |
           pip install localstack awscli-local[ver1]
           pip install terraform-local
@@ -75,7 +74,6 @@ jobs:
         env:
           LOCALSTACK_API_KEY: ${{ secrets.LOCALSTACK_API_KEY }}
           DNS_ADDRESS: 0
-          EDGE_PORT: 4566
         run: |
           pip install localstack awscli-local[ver1]
           docker pull localstack/localstack-pro:latest

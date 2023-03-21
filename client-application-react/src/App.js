@@ -30,18 +30,9 @@ Auth.configure(awsconfig)
 var MyPropsMethods = {}
 
 const App = () => {
-
-  const [acceptState, setAcceptState] = React.useState(false)
-
   return (
-    !acceptState
-    ? <div style={{textAlign: 'center', margin: '1em 0 0 0'}}>
-        <h2>Only proceed if you opened this link from the CloudFormation Outputs of the stack described in the AWS Blog</h2>
-        <button onClick={ e => setAcceptState(true) } style={{fontSize: '1em'}} >Proceed</button>
-    </div>
-    : <MyAuth />
+    <MyAuth />
   )
-
 }
 
 const MyAuth = () => {
