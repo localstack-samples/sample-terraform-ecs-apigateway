@@ -125,7 +125,7 @@ Once your application URL is displayed in the console, you can open it in your b
 a user and log into the application. Once you click the "Create account" button, your confirmation code 
 will be displayed in the console, in the LocalStack logs. Use this code to confirm your account.
 Skip the email recovery step, as that endpoint is not yet implemented.
-The endpoints can now be used to add and retrieve information on your pets and food.
+The application endpoints can now be used to add and retrieve information on your pets and food.
 In the `resources` folder, you'll find a few entries to get you started and explore the application.
 
 ![app_interface](./images/interface.png)
@@ -139,7 +139,7 @@ If you navigate to `https://app.localstack.cloud/` and go to Resources -> Dynamo
 ![web-app-items](./images/web-app-items.png)
 
 
-Of course if you prefer using the `awslocal` CLI, you can also run the following commands:
+Of course if you prefer using the `awslocal` CLI, you can also run the following command:
 
 ```awslocal dynamodb scan --table-name FoodStoreFoods```
 
