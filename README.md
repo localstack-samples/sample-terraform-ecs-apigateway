@@ -40,16 +40,19 @@ Start LocalStack Pro with the appropriate configuration to enable the S3 website
 
 ```shell
 export LOCALSTACK_API_KEY=<your-api-key>
-EXTRA_CORS_ALLOWED_ORIGINS=http://sample-app.s3.localhost.localstack.cloud:4566 DISABLE_CUSTOM_CORS_APIGATEWAY=1 localstack start -d
+EXTRA_CORS_ALLOWED_ORIGINS=http://sample-app.s3.localhost.localstack.cloud:4566 DISABLE_CUSTOM_CORS_APIGATEWAY=1 DEBUG=1 localstack start
 ```
 
 The `DISABLE_CUSTOM_CORS_APIGATEWAY` configuration variable disables CORS override by API Gateway. The `EXTRA_CORS_ALLOWED_ORIGINS` configuration variable allows our website to send requests to the container APIs.
+We specified DEBUG=1 to get the printed LocalStack logs directly in the terminal (it helps later, when we need to get the Cognito confirmation code).
+If you prefer running LocalStack in detached mode, you can add the `-d` flag to the `localstack start` command, and use Docker Desktop to view the logs.
 
 ## Instructions
 
-You can build and deploy the sample application on LocalStack by running our `Makefile` commands. Run `make terraform-setup` or `make cloudformation-setup` to create the infrastructure on LocalStack. Run `make run` to deploy the S3 Website and get a URL to access the application. Run `make stop` to delete the infrastructure by stopping LocalStack.
+You can build and deploy the sample application on LocalStack by running our `Makefile` commands. Run `make terraform-setup` or `make cloudformation-setup` to create the infrastructure on LocalStack. 
+Run `make run` to deploy the S3 Website and get a URL to access the application. Run `make stop` to delete the infrastructure by stopping LocalStack.
 
-Here are instructions to deploy it manually step-by-step.
+Alternatively, here are instructions to deploy it manually step-by-step.
 
 ## Creating the infrastructure
 
@@ -118,7 +121,79 @@ echo $URL
 
 ## Testing the web application
 
-TODO
+Once your application URL is displayed in the console, you can open it in your browser. You can now create 
+a user and log into the application. Once you click the "Create account" button, your confirmation code 
+will be displayed in the console, in the LocalStack logs. Use this code to confirm your account.
+Skip the email recovery step, as that endpoint is not yet implemented.
+The endpoints can now be used to add and retrieve information on your pets and food.
+In the `resources` folder, you'll find a few entries to get you started and explore the application.
+
+![app_interface](./images/interface.png)
+
+#### Bonus
+
+If you navigate to `https://app.localstack.cloud/` and go to Resources -> DynamoDB, you can see the tables created, as well as the data stored in them.
+
+![web-app-tables](./images/web-app-tables.png)
+
+![web-app-items](./images/web-app-items.png)
+
+
+Of course if you prefer using the `awslocal` CLI, you can also run the following commands:
+
+```awslocal dynamodb scan --table-name FoodStoreFoods```
+
+```{
+    "Items": [
+        {
+            "mainIngredient": {
+                "S": "Chicken"
+            },
+            "foodId": {
+                "S": "12345"
+            },
+            "name": {
+                "S": "Gourmet Kibble"
+            },
+            "weight": {
+                "S": "1.5 lb"
+            },
+            "id": {
+                "N": "12345"
+            },
+            "calories": {
+                "N": "350"
+            },
+            "brand": {
+                "S": "Pawfect Pet Food Co."
+            }
+        },
+        {
+            "name": {
+                "S": "Purrfect Pate"
+            },
+            "mainIngredient": {
+                "S": "Turkey"
+            },
+            "weight": {
+                "S": "3 oz"
+            },
+            "calories": {
+                "N": "85"
+            },
+            "brand": {
+                "S": "Fancy Feast"
+            },
+            "foodId": {
+                "S": "67890"
+            }
+        }
+    ],
+    "Count": 2,
+    "ScannedCount": 2,
+    "ConsumedCapacity": null
+}
+```
 
 ## GitHub Action
 
