@@ -130,7 +130,7 @@ In the `resources` folder, you'll find a few entries to get you started and expl
 
 ![app_interface](./images/interface.png)
 
-#### Bonus
+### Visualizing your data
 
 If you navigate to `https://app.localstack.cloud/` and go to Resources -> DynamoDB, you can see the tables created, as well as the data stored in them.
 
@@ -194,6 +194,31 @@ Of course if you prefer using the `awslocal` CLI, you can also run the following
     "ConsumedCapacity": null
 }
 ```
+
+## Cloud Pods
+
+If you're not familiar with them, [Cloud Pods](https://docs.localstack.cloud/user-guide/tools/cloud-pods/) provide a great way of collaborating in cloud development workflows.
+Cloud Pods are a mechanism that allows you to take a snapshot of the state in your current LocalStack instance, persist it to a storage backend, and easily share it with your team members.
+
+To create a Cloud Pod, you can run the following commands:
+
+in your root directory:
+
+```localstack pod save cloud-pod/my-pod```
+
+or simply:
+
+```localstack pod save file://<path_to_disk>/my-pod```
+
+The above command will create a zip file named my-pod to the specified location on the disk.
+
+The `load` command is the inverse operation of save. It retrieves the content of a previously stored Cloud Pod 
+from the local file system or the Cloud Pod’s platform and injects it into the application runtime. To use the existing pod run:
+
+```localstack pod load file://sample-pod```
+
+To make sure everything is set in place now, please follow the previous steps of setting the environment variables and reveal the application URL.
+The state is restored and you should be able to see the same data as before.
 
 ## GitHub Action
 
