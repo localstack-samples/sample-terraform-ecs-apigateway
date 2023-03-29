@@ -1,0 +1,34 @@
+{
+  "id": 12345,
+  "name": "Gourmet Kibble",
+  "brand": "Pawfect Pet Food Co.",
+  "mainIngredient": "Chicken",
+  "weight": "1.5 lb",
+  "calories": 350
+}
+{
+  "id": 67890,
+  "name": "Purrfect Pate",
+  "brand": "Fancy Feast",
+  "mainIngredient": "Turkey",
+  "weight": "3 oz",
+  "calories": 85
+}
+{
+  "id": 12345,
+  "name": "Buddy",
+  "breed": "Golden Retriever",
+  "hairType": "Medium-length",
+  "size": "Large",
+  "weight": "75 lb",
+  "job": "Therapy dog"
+}
+{
+  "id": 67890,
+  "name": "Fluffy",
+  "breed": "Persian",
+  "hairType": "Long",
+  "size": "Small",
+  "weight": "8 lb",
+  "job": "House cat"
+}

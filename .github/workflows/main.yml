@@ -1,0 +1,101 @@
+name: Deploy infrastructure on LocalStack
+
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    name: Deploy infrastructure using Terraform
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Set up Python 3.10
+        id: setup-python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+
+      - name: Start LocalStack
+        env:
+          LOCALSTACK_API_KEY: ${{ secrets.LOCALSTACK_API_KEY }}
+          DNS_ADDRESS: 0
+        run: |
+          pip install localstack awscli-local[ver1]
+          pip install terraform-local
+          docker pull localstack/localstack-pro:latest
+
+          # Start LocalStack in the background
+          localstack start -d
+
+          # Wait 30 seconds for the LocalStack container to become ready before timing out
+          echo "Waiting for LocalStack startup..."
+          localstack wait -t 15
+
+          echo "Startup complete"
+
+      - name: Deploy on Terraform
+        run: |
+          cd terraform
+          tflocal init
+          tflocal apply --auto-approve
+
+      - name: Check deployed resources
+        run: |
+          sleep 10
+          awslocal apigatewayv2 get-apis
+          awslocal cognito-idp list-user-pools --max-results 1
+
+  cloudformation:
+    name: Deploy infrastructure using CloudFormation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.10
+        id: setup-python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+
+      - name: Start LocalStack
+        env:
+          LOCALSTACK_API_KEY: ${{ secrets.LOCALSTACK_API_KEY }}
+          DNS_ADDRESS: 0
+        run: |
+          pip install localstack awscli-local[ver1]
+          docker pull localstack/localstack-pro:latest
+
+          # Start LocalStack in the background
+          localstack start -d
+
+          # Wait 30 seconds for the LocalStack container to become ready before timing out
+          echo "Waiting for LocalStack startup..."
+          localstack wait -t 15
+
+          echo "Startup complete"
+
+      - name: Deploy on Terraform
+        run: |
+          cd cloudformation
+          STACK="stack1"
+          CF_FILE="ecsapi-demo-cloudformation.yaml"
+          awslocal cloudformation create-stack --stack-name $STACK --template-body file://$CF_FILE
+
+      - name: Check deployed resources
+        run: |
+          sleep 10
+          awslocal apigatewayv2 get-apis
+          awslocal cognito-idp list-user-pools --max-results 1
