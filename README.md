@@ -121,104 +121,62 @@ echo $URL
 
 ## Testing the web application
 
-Once your application URL is displayed in the console, you can open it in your browser. You can now create 
-a user and log into the application. Once you click the "Create account" button, your confirmation code 
-will be displayed in the console, in the LocalStack logs. Use this code to confirm your account.
-Skip the email recovery step, as that endpoint is not yet implemented.
-The application endpoints can now be used to add and retrieve information on your pets and food.
-In the `resources` folder, you'll find a few entries to get you started and explore the application.
+To test the web application, follow these steps:
 
-![app_interface](./images/interface.png)
+- Open your application URL in your browser if it is displayed in the terminal.
+- Create a user by clicking the **Go to Sign In!** button and navigating to the **Create Account** page.
+- Follow the prompts to fill in your details, and click the **Create account** button.
+- You will be prompted to enter a confirmation code displayed in the terminal, in the LocalStack logs. Use this code to confirm your Account.
+
+Once you have confirmed your Account, skip the email recovery step, as that endpoint is not yet implemented. The application endpoints can now add and retrieve information on your pets and food. You will find a few entries in the resources folder to get you started and explore the application.
+
+![Serverless Container-based APIs with Amazon ECS and Amazon API Gateway Web Interface](./images/interface.png)
 
 ### Visualizing your data
 
-If you navigate to `https://app.localstack.cloud/` and go to Resources -> DynamoDB, you can see the tables created, as well as the data stored in them.
+Navigate to [**app.localstack.cloud**](https://app.localstack.cloud/) and go to **Resources** -> **DynamoDB**. You can now see the tables created, as well as the data stored in them:
 
-![web-app-tables](./images/web-app-tables.png)
+![Displaying DynamoDB tables in the LocalStack Web Application](./images/web-app-tables.png)
 
-![web-app-items](./images/web-app-items.png)
+![Displaying DynamoDB table items in the LocalStack Web Application](./images/web-app-items.png)
 
+Alternatively, you can use the AWS CLI to query the table data. For example, to query the `FoodStoreFoods` table, run the following command:
 
-Of course if you prefer using the `awslocal` CLI, you can also run the following command:
-
-```awslocal dynamodb scan --table-name FoodStoreFoods```
-
-```{
-    "Items": [
-        {
-            "mainIngredient": {
-                "S": "Chicken"
-            },
-            "foodId": {
-                "S": "12345"
-            },
-            "name": {
-                "S": "Gourmet Kibble"
-            },
-            "weight": {
-                "S": "1.5 lb"
-            },
-            "id": {
-                "N": "12345"
-            },
-            "calories": {
-                "N": "350"
-            },
-            "brand": {
-                "S": "Pawfect Pet Food Co."
-            }
-        },
-        {
-            "name": {
-                "S": "Purrfect Pate"
-            },
-            "mainIngredient": {
-                "S": "Turkey"
-            },
-            "weight": {
-                "S": "3 oz"
-            },
-            "calories": {
-                "N": "85"
-            },
-            "brand": {
-                "S": "Fancy Feast"
-            },
-            "foodId": {
-                "S": "67890"
-            }
-        }
-    ],
-    "Count": 2,
-    "ScannedCount": 2,
-    "ConsumedCapacity": null
-}
+```bash
+awslocal dynamodb scan --table-name FoodStoreFoods
 ```
 
 ## Cloud Pods
 
-If you're not familiar with them, [Cloud Pods](https://docs.localstack.cloud/user-guide/tools/cloud-pods/) provide a great way of collaborating in cloud development workflows.
-Cloud Pods are a mechanism that allows you to take a snapshot of the state in your current LocalStack instance, persist it to a storage backend, and easily share it with your team members.
+Cloud Pods](https://docs.localstack.cloud/user-guide/tools/cloud-pods/) are a mechanism that allows you to take a snapshot of the state in your current LocalStack instance, persist it to a storage backend, and easily share it with your team members.
 
-To create a Cloud Pod, you can run the following commands:
+To save your local AWS infrastructure state using Cloud Pods, you can use the `save` command with a desired name for your Cloud Pod as the first argument:
 
-in your root directory:
+```bash
+localstack pod save cloud-pod/serverless-api-ecs-apigateway-pod
+```
 
-```localstack pod save cloud-pod/my-pod```
+You can alternatively use the `save` command with a local file path as the first argument to save the Cloud Pod on your local file system and not the LocalStack Web Application:
 
-or simply:
+```bash
+localstack pod save file://<path_to_disk>/serverless-api-ecs-apigateway-pod
+```
 
-```localstack pod save file://<path_to_disk>/my-pod```
+The above command will create a zip file named `serverless-api-ecs-apigateway-pod` to the specified location on the disk.
 
-The above command will create a zip file named my-pod to the specified location on the disk.
+The `load` command is the inverse operation of the `save` command. It retrieves the content of a previously stored Cloud Pod from the local file system or the LocalStack Web Application and injects it into the application runtime. On an alternate machine, start LocalStack with the API key configured, and pull the Cloud Pod we created previously using the `load` command with the Cloud Pod name as the first argument:
 
-The `load` command is the inverse operation of save. It retrieves the content of a previously stored Cloud Pod 
-from the local file system or the Cloud Pod’s platform and injects it into the application runtime. To use the existing pod run:
+```bash
+localstack pod load serverless-api-ecs-apigateway-pod
+```
 
-```localstack pod load file://sample-pod```
+Alternatively, you can use load the Cloud Pod with the local file path as the first argument:
 
-To make sure everything is set in place now, please follow the previous steps of setting the environment variables and reveal the application URL.
-The state is restored and you should be able to see the same data as before.
+```bash
+localstack pod load file://<path_to_disk>/serverless-api-ecs-apigateway-pod
+```
+
+To ensure everything is set in place now, follow the previous steps of setting the configuration variables and query the application URL. The state will be restored, and you should be able to see the same data as before.
 
 ## GitHub Action
 
