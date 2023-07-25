@@ -5,6 +5,7 @@ data "aws_region" "current" {
 # Configure the AWS Provider
 provider "aws" {
   region = "us-east-1"
+  version = "<= 5.8.0"
 }
 
 variable "environment_name" {
