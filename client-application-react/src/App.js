@@ -5,7 +5,6 @@ import React from 'react'
 import { Amplify, Auth } from 'aws-amplify'
 import { AmplifyAuthenticator, AmplifySignOut, AmplifySignUp } from '@aws-amplify/ui-react'
 import { onAuthUIStateChange } from '@aws-amplify/ui-components'
-// import awsconfig from './aws-exports'
 import axios from 'axios'
 
 const searchParams = new URLSearchParams( window.location.search )
@@ -18,11 +17,14 @@ const searchParamsList = {
 if( !searchParamsList.regionID.match(/^[a-zA-Z0-9\-]+$/) ){ throw new Error('Invalid Region ID!!'); }
 if( !searchParamsList.HttpApiID.match(/^[a-zA-Z0-9\-]+$/) ){ throw new Error('Invalid API ID!!'); }
 const awsconfig = {};
+
+const protocol = window.location.protocol;
+const localhostDomain = 'localhost.localstack.cloud';
 awsconfig.Auth = {
   region: searchParamsList.regionID,
   userPoolId: searchParamsList.UserPoolID,
   userPoolWebClientId: searchParamsList.UserPoolClientID,
-  endpoint: 'http://localhost:4566'
+  endpoint: `${protocol}//localhost:4566`
 }
 Amplify.configure(awsconfig)
 Auth.configure(awsconfig)
@@ -184,9 +186,8 @@ MyPropsMethods.invokeAPI = ( e, enableFormSubmission, selectedMethod, selectedAP
 
 MyPropsMethods.AjaxCall = ( selectedMethod, selectedAPI, selectedVariable, selectedPayload, jwtToken ) => {
 
-  // const invokeURL = `https://${searchParamsList.HttpApiID}.execute-api.${searchParamsList.regionID}.amazonaws.com/${selectedAPI}${selectedVariable}`
-  const invokeURL = `http://${searchParamsList.HttpApiID}.execute-api.localhost.localstack.cloud:4566/${selectedAPI}${selectedVariable}`
-  const reqHeaders = jwtToken ? { authorization: jwtToken } : undefined
+  const invokeURL = `${protocol}//${searchParamsList.HttpApiID}.execute-api.${localhostDomain}:4566/${selectedAPI}${selectedVariable}`;
+  const reqHeaders = jwtToken ? { authorization: jwtToken } : undefined;
 
   try {
     selectedPayload = selectedPayload ? JSON.parse(selectedPayload): selectedPayload
