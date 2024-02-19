@@ -39,7 +39,7 @@ We are using the following AWS services and their features to build our infrastr
 Start LocalStack Pro with the appropriate configuration to enable the S3 website to send requests to the container APIs:
 
 ```shell
-export LOCALSTACK_API_KEY=<your-api-key>
+export LOCALSTACK_AUTH_TOKEN=<your-auth-token>
 EXTRA_CORS_ALLOWED_ORIGINS=http://sample-app.s3.localhost.localstack.cloud:4566 DISABLE_CUSTOM_CORS_APIGATEWAY=1 DEBUG=1 localstack start
 ```
 
@@ -95,7 +95,7 @@ To build the web application, navigate to the root directory of the sample appli
 ```shell
 cd client-application-react
 yarn
-yarn build
+NODE_OPTIONS=--openssl-legacy-provider yarn build
 ```
 
 Ensure a `build` directory is created in the `client-application-react` directory.
@@ -146,34 +146,22 @@ Alternatively, you can use the AWS CLI to query the table data. For example, to 
 awslocal dynamodb scan --table-name FoodStoreFoods
 ```
 
-## Cloud Pods
+## State Management
 
-[Cloud Pods](https://docs.localstack.cloud/user-guide/tools/cloud-pods/) are a mechanism that allows you to take a snapshot of the state in your current LocalStack instance, persist it to a storage backend, and easily share it with your team members.
+The [Export/Import State feature](https://docs.localstack.cloud/user-guide/state-management/export-import-state/) enables you to export the state of your LocalStack instance into a file and import it into another LocalStack instance. This feature is useful when you want to save your LocalStack instance’s state for later use.
 
-To save your local AWS infrastructure state using Cloud Pods, you can use the `save` command with a desired name for your Cloud Pod as the first argument:
+To save your local AWS infrastructure state, you can use the `export` command with a desired name for your state file as the first argument:
 
 ```bash
-localstack pod save cloud-pod/serverless-api-ecs-apigateway-pod
+localstack state export serverless-api-ecs-apigateway-state
 ```
 
-You can alternatively use the `save` command with a local file path as the first argument to save the Cloud Pod on your local file system and not the LocalStack Web Application:
+The above command will create a file named `serverless-api-ecs-apigateway-state` to the specified location on the disk.
+
+You can import the state file we created previously using the `import` command with the file name as the first argument:
 
 ```bash
-localstack pod save file://<path_to_disk>/serverless-api-ecs-apigateway-pod
-```
-
-The above command will create a zip file named `serverless-api-ecs-apigateway-pod` to the specified location on the disk.
-
-The `load` command is the inverse operation of the `save` command. It retrieves the content of a previously stored Cloud Pod from the local file system or the LocalStack Web Application and injects it into the application runtime. On an alternate machine, start LocalStack with the API key configured, and pull the Cloud Pod we created previously using the `load` command with the Cloud Pod name as the first argument:
-
-```bash
-localstack pod load serverless-api-ecs-apigateway-pod
-```
-
-Alternatively, you can use load the Cloud Pod with the local file path as the first argument:
-
-```bash
-localstack pod load file://<path_to_disk>/serverless-api-ecs-apigateway-pod
+localstack state import serverless-api-ecs-apigateway-state
 ```
 
 To ensure everything is set in place now, follow the previous steps of setting the configuration variables and query the application URL. The state will be restored, and you should be able to see the same data as before.
@@ -192,4 +180,3 @@ The sample application is based on a public [AWS sample app](https://github.com/
 
 We appreciate your interest in contributing to our project and are always looking for new ways to improve the developer experience. We welcome feedback, bug reports, and even feature ideas from the community.
 Please refer to the [contributing file](CONTRIBUTING.md) for more details on how to get started. 
-

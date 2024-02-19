@@ -22,6 +22,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - uses: gautamkrishnar/keepalive-workflow@v1
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
@@ -54,6 +56,10 @@ jobs:
           cd terraform
           tflocal init
           tflocal apply --auto-approve
+
+      - name: Deploy Web Application
+        run: |
+          make run
 
       - name: Check deployed resources
         run: |
@@ -93,6 +99,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - uses: gautamkrishnar/keepalive-workflow@v1
+
       - name: Set up Python 3.10
         id: setup-python
         uses: actions/setup-python@v2
@@ -123,6 +131,10 @@ jobs:
           CF_FILE="ecsapi-demo-cloudformation.yaml"
           awslocal cloudformation create-stack --stack-name $STACK --template-body file://$CF_FILE
 
+      - name: Deploy Web Application
+        run: |
+          make run
+      
       - name: Check deployed resources
         run: |
           sleep 10

@@ -517,7 +517,7 @@ resource "aws_ecs_task_definition" "task_definition_foodstore_foods" {
   [
     {
       "name": "FoodstoreFoods",
-      "image": "localstack.container-registry.com/library/foodstore",
+      "image": "localstack/ecsapi-demo-foodstore",
       "essential": true,
       "environment": [
         {"name": "DynamoDBTable", "value": "${aws_dynamodb_table.dynamo_db_table_foodstore_foods.name}"}
@@ -544,7 +544,7 @@ resource "aws_ecs_task_definition" "task_definition_petstore_pets" {
   [
     {
       "name": "PetstorePets",
-      "image": "localstack.container-registry.com/library/petstore",
+      "image": "localstack/ecsapi-demo-petstore",
       "essential": true,
       "environment": [
         {"name": "DynamoDBTable", "value": "${aws_dynamodb_table.dynamo_db_table_petstore_pets.name}"}
@@ -663,7 +663,7 @@ resource "aws_apigatewayv2_api" "http_api" {
                 "${aws_cognito_user_pool_client.user_pool_client.client_secret}"
               ]
               # TODO: look into better parity with AWS
-              issuer = "http://localhost:4566/${aws_cognito_user_pool.user_pool.id}"
+              issuer = "http://localhost.localstack.cloud:4566/${aws_cognito_user_pool.user_pool.id}"
             }
             type = "jwt"
           }
