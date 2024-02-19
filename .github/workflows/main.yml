@@ -25,7 +25,9 @@ jobs:
       - uses: gautamkrishnar/keepalive-workflow@v1
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5.7"
 
       - name: Set up Python 3.10
         id: setup-python
