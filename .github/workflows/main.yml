@@ -14,6 +14,9 @@ on:
     - cron: "0 0 * * 0"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   terraform:
     name: Deploy infrastructure using Terraform
@@ -22,8 +25,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - uses: gautamkrishnar/keepalive-workflow@v1
+
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5.7"
 
       - name: Set up Python 3.10
         id: setup-python
@@ -54,6 +61,10 @@ jobs:
           cd terraform
           tflocal init
           tflocal apply --auto-approve
+
+      - name: Deploy Web Application
+        run: |
+          make run
 
       - name: Check deployed resources
         run: |
@@ -116,13 +127,17 @@ jobs:
 
           echo "Startup complete"
 
-      - name: Deploy on Terraform
+      - name: Deploy on CloudFormation
         run: |
           cd cloudformation
           STACK="stack1"
           CF_FILE="ecsapi-demo-cloudformation.yaml"
           awslocal cloudformation create-stack --stack-name $STACK --template-body file://$CF_FILE
 
+      - name: Deploy Web Application
+        run: |
+          make run
+      
       - name: Check deployed resources
         run: |
           sleep 10
