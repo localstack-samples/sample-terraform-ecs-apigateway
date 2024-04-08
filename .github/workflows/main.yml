@@ -14,6 +14,9 @@ on:
     - cron: "0 0 * * 0"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   terraform:
     name: Deploy infrastructure using Terraform
@@ -101,8 +104,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - uses: gautamkrishnar/keepalive-workflow@v1
-
       - name: Set up Python 3.10
         id: setup-python
         uses: actions/setup-python@v2
@@ -126,7 +127,7 @@ jobs:
 
           echo "Startup complete"
 
-      - name: Deploy on Terraform
+      - name: Deploy on CloudFormation
         run: |
           cd cloudformation
           STACK="stack1"
