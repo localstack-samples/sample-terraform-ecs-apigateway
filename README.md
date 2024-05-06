@@ -70,6 +70,8 @@ tflocal apply --auto-approve
 
 We are using the `tflocal` wrapper to configure the local service endpoints, and send the API requests to LocalStack, instead of AWS. You can use the same Terraform configuration to deploy the infrastructure on AWS as well.
 
+> Currently, the Terraform configuration is tested & validated against `localstack/localstack:3.2.0` image. You can use the `IMAGE_NAME` environment variable to specify the LocalStack image version to ensure that the Terraform configuration works as expected.
+
 #### CloudFormation
 
 To create the infrastructure using CloudFormation, run the following commands:
