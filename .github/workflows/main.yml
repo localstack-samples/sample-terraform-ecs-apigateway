@@ -41,11 +41,10 @@ jobs:
       - name: Start LocalStack
         env:
           LOCALSTACK_API_KEY: ${{ secrets.LOCALSTACK_API_KEY }}
-          DNS_ADDRESS: 0
         run: |
-          pip install localstack awscli-local[ver1]
+          pip install localstack==3.2.0 awscli-local[ver1]
           pip install terraform-local
-          docker pull localstack/localstack-pro:latest
+          docker pull localstack/localstack-pro:3.2.0
 
           # Start LocalStack in the background
           localstack start -d
