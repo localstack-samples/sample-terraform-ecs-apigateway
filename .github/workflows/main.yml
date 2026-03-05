@@ -23,9 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-
-      - uses: gautamkrishnar/keepalive-workflow@v1
+        uses: actions/checkout@v4
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -34,20 +32,20 @@ jobs:
 
       - name: Set up Python 3.10
         id: setup-python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
       - name: Start LocalStack
         env:
-          LOCALSTACK_API_KEY: ${{ secrets.LOCALSTACK_API_KEY }}
+          LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
         run: |
-          pip install localstack==3.2.0 awscli-local[ver1]
+          pip install localstack awscli-local[ver1]
           pip install terraform-local
-          docker pull localstack/localstack-pro:3.2.0
+          docker pull localstack/localstack-pro:latest
 
           # Start LocalStack in the background
-          IMAGE_NAME=localstack/localstack-pro:3.2.0 localstack start -d
+          localstack start -d
 
           # Wait 30 seconds for the LocalStack container to become ready before timing out
           echo "Waiting for LocalStack startup..."
@@ -101,17 +99,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python 3.10
         id: setup-python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
       - name: Start LocalStack
         env:
-          LOCALSTACK_API_KEY: ${{ secrets.LOCALSTACK_API_KEY }}
+          LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
           DNS_ADDRESS: 0
         run: |
           pip install localstack awscli-local[ver1]
