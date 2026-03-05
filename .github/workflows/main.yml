@@ -25,6 +25,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - uses: gautamkrishnar/keepalive-workflow@v1
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -40,12 +42,12 @@ jobs:
         env:
           LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
         run: |
-          pip install localstack awscli-local[ver1]
+          pip install localstack==3.2.0 awscli-local[ver1]
           pip install terraform-local
-          docker pull localstack/localstack-pro:latest
+          docker pull localstack/localstack-pro:3.2.0
 
           # Start LocalStack in the background
-          localstack start -d
+          IMAGE_NAME=localstack/localstack-pro:3.2.0 localstack start -d
 
           # Wait 30 seconds for the LocalStack container to become ready before timing out
           echo "Waiting for LocalStack startup..."
