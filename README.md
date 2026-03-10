@@ -31,12 +31,13 @@ We are using the following AWS services and their features to build our infrastr
 
 ## Prerequisites
 
-- LocalStack Pro with the [`localstack` CLI](https://docs.localstack.cloud/getting-started/installation/#localstack-cli).
+- LocalStack with the [`localstack` CLI](https://docs.localstack.cloud/getting-started/installation/#localstack-cli).
 - [AWS CLI](https://docs.localstack.cloud/user-guide/integrations/aws-cli/) with the [`awslocal` wrapper](https://docs.localstack.cloud/user-guide/integrations/aws-cli/#localstack-aws-cli-awslocal).
 - [Terraform](https://docs.localstack.cloud/user-guide/integrations/terraform/) with the [`tflocal` wrapper](https://docs.localstack.cloud/user-guide/integrations/terraform/#using-the-tflocal-script).
 - [Node.js](https://nodejs.org/en/download/) with `npm` package manager.
+- A valid [LocalStack for AWS license](https://localstack.cloud/pricing). Your license provides a [`LOCALSTACK_AUTH_TOKEN`](https://docs.localstack.cloud/getting-started/auth-token/) to activate LocalStack.
 
-Start LocalStack Pro with the appropriate configuration to enable the S3 website to send requests to the container APIs:
+Start LocalStack with the appropriate configuration to enable the S3 website to send requests to the container APIs:
 
 ```shell
 export LOCALSTACK_AUTH_TOKEN=<your-auth-token>

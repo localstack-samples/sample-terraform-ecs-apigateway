@@ -39,7 +39,8 @@ run:                  ## Run the sample app
 			echo $$URL
 
 start:                ## Start LocalStack in detached mode
-		EXTRA_CORS_ALLOWED_ORIGINS=http://sample-app.s3.localhost.localstack.cloud:4566 DISABLE_CUSTOM_CORS_APIGATEWAY=1 localstack start -d
+		@test -n "${LOCALSTACK_AUTH_TOKEN}" || (echo "LOCALSTACK_AUTH_TOKEN is not set. Find your token at https://app.localstack.cloud/workspace/auth-token"; exit 1)
+		@LOCALSTACK_AUTH_TOKEN=$(LOCALSTACK_AUTH_TOKEN) EXTRA_CORS_ALLOWED_ORIGINS=http://sample-app.s3.localhost.localstack.cloud:4566 DISABLE_CUSTOM_CORS_APIGATEWAY=1 localstack start -d
 
 stop:                 ## Stop the running LocalStack container
 		@echo
