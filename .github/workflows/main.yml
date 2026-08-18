@@ -42,24 +42,23 @@ jobs:
         env:
           LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
         run: |
-          pip install localstack==3.2.0 awscli-local[ver1]
-          pip install terraform-local
-          docker pull localstack/localstack-pro:3.2.0
+          npm install -g @localstack/lstk
+          lstk setup aws
 
           # Start LocalStack in the background
-          IMAGE_NAME=localstack/localstack-pro:3.2.0 localstack start -d
+          lstk start --non-interactive
 
-          # Wait 30 seconds for the LocalStack container to become ready before timing out
+          # Wait for the LocalStack container to become ready
           echo "Waiting for LocalStack startup..."
-          localstack wait -t 15
+          lstk status
 
           echo "Startup complete"
 
       - name: Deploy on Terraform
         run: |
           cd terraform
-          tflocal init
-          tflocal apply --auto-approve
+          lstk tf init
+          lstk tf apply --auto-approve
 
       - name: Deploy Web Application
         run: |
@@ -68,8 +67,8 @@ jobs:
       - name: Check deployed resources
         run: |
           sleep 10
-          awslocal apigatewayv2 get-apis
-          awslocal cognito-idp list-user-pools --max-results 1
+          lstk aws apigatewayv2 get-apis
+          lstk aws cognito-idp list-user-pools --max-results 1
 
       - name: Send a Slack notification
         if: failure() || github.event_name != 'pull_request'
@@ -112,17 +111,18 @@ jobs:
       - name: Start LocalStack
         env:
           LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
-          DNS_ADDRESS: 0
+          LOCALSTACK_DNS_ADDRESS: 0
         run: |
-          pip install localstack awscli-local[ver1]
+          npm install -g @localstack/lstk
+          lstk setup aws
           docker pull localstack/localstack-pro:latest
 
           # Start LocalStack in the background
-          localstack start -d
+          lstk start --non-interactive
 
-          # Wait 30 seconds for the LocalStack container to become ready before timing out
+          # Wait for the LocalStack container to become ready
           echo "Waiting for LocalStack startup..."
-          localstack wait -t 15
+          lstk status
 
           echo "Startup complete"
 
@@ -131,17 +131,17 @@ jobs:
           cd cloudformation
           STACK="stack1"
           CF_FILE="ecsapi-demo-cloudformation.yaml"
-          awslocal cloudformation create-stack --stack-name $STACK --template-body file://$CF_FILE
+          lstk aws cloudformation create-stack --stack-name $STACK --template-body file://$CF_FILE
 
       - name: Deploy Web Application
         run: |
           make run
-      
+
       - name: Check deployed resources
         run: |
           sleep 10
-          awslocal apigatewayv2 get-apis
-          awslocal cognito-idp list-user-pools --max-results 1
+          lstk aws apigatewayv2 get-apis
+          lstk aws cognito-idp list-user-pools --max-results 1
 
       - name: Send a Slack notification
         if: failure() || github.event_name != 'pull_request'

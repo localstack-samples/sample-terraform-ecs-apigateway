@@ -31,22 +31,22 @@ We are using the following AWS services and their features to build our infrastr
 
 ## Prerequisites
 
-- LocalStack with the [`localstack` CLI](https://docs.localstack.cloud/getting-started/installation/#localstack-cli).
-- [AWS CLI](https://docs.localstack.cloud/user-guide/integrations/aws-cli/) with the [`awslocal` wrapper](https://docs.localstack.cloud/user-guide/integrations/aws-cli/#localstack-aws-cli-awslocal).
-- [Terraform](https://docs.localstack.cloud/user-guide/integrations/terraform/) with the [`tflocal` wrapper](https://docs.localstack.cloud/user-guide/integrations/terraform/#using-the-tflocal-script).
+- LocalStack with the [`lstk` CLI](https://docs.localstack.cloud/aws/developer-tools/running-localstack/lstk/).
+- [AWS CLI](https://docs.localstack.cloud/user-guide/integrations/aws-cli/) with the [`lstk aws` proxy](https://docs.localstack.cloud/aws/developer-tools/running-localstack/lstk/).
+- [Terraform](https://docs.localstack.cloud/user-guide/integrations/terraform/) with the [`lstk tf` proxy](https://docs.localstack.cloud/aws/developer-tools/running-localstack/lstk/).
 - [Node.js](https://nodejs.org/en/download/) with `npm` package manager.
-- A valid [LocalStack for AWS license](https://localstack.cloud/pricing). Your license provides a [`LOCALSTACK_AUTH_TOKEN`](https://docs.localstack.cloud/getting-started/auth-token/) to activate LocalStack.
+- A valid [LocalStack for AWS license](https://localstack.cloud/pricing). Your license provides a [`LOCALSTACK_AUTH_TOKEN`](https://docs.localstack.cloud/aws/getting-started/auth-token/) to activate LocalStack.
 
 Start LocalStack with the appropriate configuration to enable the S3 website to send requests to the container APIs:
 
 ```shell
 export LOCALSTACK_AUTH_TOKEN=<your-auth-token>
-EXTRA_CORS_ALLOWED_ORIGINS=http://sample-app.s3.localhost.localstack.cloud:4566 DISABLE_CUSTOM_CORS_APIGATEWAY=1 DEBUG=1 localstack start
+LOCALSTACK_EXTRA_CORS_ALLOWED_ORIGINS=http://sample-app.s3.localhost.localstack.cloud:4566 LOCALSTACK_DISABLE_CUSTOM_CORS_APIGATEWAY=1 LOCALSTACK_DEBUG=1 lstk start
 ```
 
-The `DISABLE_CUSTOM_CORS_APIGATEWAY` configuration variable disables CORS override by API Gateway. The `EXTRA_CORS_ALLOWED_ORIGINS` configuration variable allows our website to send requests to the container APIs.
-We specified DEBUG=1 to get the printed LocalStack logs directly in the terminal (it helps later, when we need to get the Cognito confirmation code).
-If you prefer running LocalStack in detached mode, you can add the `-d` flag to the `localstack start` command, and use Docker Desktop to view the logs.
+The `LOCALSTACK_DISABLE_CUSTOM_CORS_APIGATEWAY` configuration variable disables CORS override by API Gateway. The `LOCALSTACK_EXTRA_CORS_ALLOWED_ORIGINS` configuration variable allows our website to send requests to the container APIs.
+We specified LOCALSTACK_DEBUG=1 to get the printed LocalStack logs directly in the terminal (it helps later, when we need to get the Cognito confirmation code).
+If you prefer running LocalStack without interactive prompts, you can add the `--non-interactive` flag to the `lstk start` command, and use Docker Desktop to view the logs.
 
 ## Instructions
 
@@ -65,13 +65,13 @@ To create the infrastructure using Terraform, run the following commands:
 
 ```shell
 cd terraform
-tflocal init
-tflocal apply --auto-approve
+lstk tf init
+lstk tf apply --auto-approve
 ```
 
-We are using the `tflocal` wrapper to configure the local service endpoints, and send the API requests to LocalStack, instead of AWS. You can use the same Terraform configuration to deploy the infrastructure on AWS as well.
+We are using `lstk tf` to configure the local service endpoints, and send the API requests to LocalStack, instead of AWS. You can use the same Terraform configuration to deploy the infrastructure on AWS as well.
 
-> Currently, the Terraform configuration is tested & validated against `localstack/localstack:3.2.0` image. You can use the `IMAGE_NAME` environment variable to specify the LocalStack image version to ensure that the Terraform configuration works as expected.
+> Currently, the Terraform configuration is tested & validated against `localstack/localstack:3.2.0` image.
 
 #### CloudFormation
 
@@ -80,13 +80,13 @@ To create the infrastructure using CloudFormation, run the following commands:
 ```shell
 cd cloudformation
 export STACK="stack1"
-awslocal cloudformation create-stack --stack-name $STACK --template-body file://ecsapi-demo-cloudformation.yaml
+lstk aws cloudformation create-stack --stack-name $STACK --template-body file://ecsapi-demo-cloudformation.yaml
 ```
 
 Wait for a few seconds for the infrastructure to be created. You can check the status of the stack using the following command:
 
 ```shell
-awslocal cloudformation describe-stacks --stack-name $STACK | grep StackStatus
+lstk aws cloudformation describe-stacks --stack-name $STACK | grep StackStatus
 ```
 
 If the `StackStatus` is `CREATE_COMPLETE`, you can proceed to the next step.
@@ -108,16 +108,16 @@ Ensure a `build` directory is created in the `client-application-react` director
 To deploy the web application, we will make an S3 bucket and sync the `build` directory to the S3 bucket. Run the following commands from the `client-application-react` directory:
 
 ```shell
-awslocal s3 mb s3://sample-app
-awslocal s3 sync build s3://sample-app
+lstk aws s3 mb s3://sample-app
+lstk aws s3 sync build s3://sample-app
 ```
 
 To access the web application, you can run the following commands:
 
 ```shell
-export API_ID=$(awslocal apigatewayv2 get-apis | jq -r '.Items[] | select(.Name=="ecsapi-demo") | .ApiId')
-export POOL_ID=$(awslocal cognito-idp list-user-pools --max-results 1 | jq -r '.UserPools[0].Id')
-export CLIENT_ID=$(awslocal cognito-idp list-user-pool-clients --user-pool-id $POOL_ID | jq -r '.UserPoolClients[0].ClientId')
+export API_ID=$(lstk aws apigatewayv2 get-apis | jq -r '.Items[] | select(.Name=="ecsapi-demo") | .ApiId')
+export POOL_ID=$(lstk aws cognito-idp list-user-pools --max-results 1 | jq -r '.UserPools[0].Id')
+export CLIENT_ID=$(lstk aws cognito-idp list-user-pool-clients --user-pool-id $POOL_ID | jq -r '.UserPoolClients[0].ClientId')
 export URL="http://sample-app.s3.localhost.localstack.cloud:4566/index.html?stackregion=us-east-1&stackhttpapi=$API_ID&stackuserpool=$POOL_ID&stackuserpoolclient=$CLIENT_ID"
 echo $URL
 ```
@@ -146,32 +146,32 @@ Navigate to [**app.localstack.cloud**](https://app.localstack.cloud/) and go to 
 Alternatively, you can use the AWS CLI to query the table data. For example, to query the `FoodStoreFoods` table, run the following command:
 
 ```bash
-awslocal dynamodb scan --table-name FoodStoreFoods
+lstk aws dynamodb scan --table-name FoodStoreFoods
 ```
 
 ## State Management
 
 The [Export/Import State feature](https://docs.localstack.cloud/user-guide/state-management/export-import-state/) enables you to export the state of your LocalStack instance into a file and import it into another LocalStack instance. This feature is useful when you want to save your LocalStack instance’s state for later use.
 
-To save your local AWS infrastructure state, you can use the `export` command with a desired name for your state file as the first argument:
+To save your local AWS infrastructure state, you can use the `save` command with a desired name for your state file as the first argument:
 
 ```bash
-localstack state export serverless-api-ecs-apigateway-state
+lstk save serverless-api-ecs-apigateway-state
 ```
 
 The above command will create a file named `serverless-api-ecs-apigateway-state` to the specified location on the disk.
 
-You can import the state file we created previously using the `import` command with the file name as the first argument:
+You can import the state file we created previously using the `load` command with the file name as the first argument:
 
 ```bash
-localstack state import serverless-api-ecs-apigateway-state
+lstk load serverless-api-ecs-apigateway-state
 ```
 
 To ensure everything is set in place now, follow the previous steps of setting the configuration variables and query the application URL. The state will be restored, and you should be able to see the same data as before.
 
 ## GitHub Action
 
-This application sample hosts an example GitHub Action workflow that starts up LocalStack, deploys the infrastructure, and checks the created resources using `awslocal`. You can find the workflow in the `.github/workflows/main.yml` file. To run the workflow, you can fork this repository and push a commit to the `main` branch.
+This application sample hosts an example GitHub Action workflow that starts up LocalStack, deploys the infrastructure, and checks the created resources using `lstk aws`. You can find the workflow in the `.github/workflows/main.yml` file. To run the workflow, you can fork this repository and push a commit to the `main` branch.
 
 Users can adapt this example workflow to run in their own CI environment. LocalStack supports various CI environments, including GitHub Actions, CircleCI, Jenkins, Travis CI, and more. You can find more information about the CI integration in the [LocalStack documentation](https://docs.localstack.cloud/user-guide/ci/).
 
