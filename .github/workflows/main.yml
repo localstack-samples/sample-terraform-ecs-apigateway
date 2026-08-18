@@ -25,8 +25,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: gautamkrishnar/keepalive-workflow@v1
-
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
