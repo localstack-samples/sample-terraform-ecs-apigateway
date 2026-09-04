@@ -38,7 +38,7 @@ run:                  ## Run the sample app
 
 start:                ## Start LocalStack
 		@test -n "${LOCALSTACK_AUTH_TOKEN}" || (echo "LOCALSTACK_AUTH_TOKEN is not set. Find your token at https://app.localstack.cloud/workspace/auth-token"; exit 1)
-		@LOCALSTACK_AUTH_TOKEN=$(LOCALSTACK_AUTH_TOKEN) LOCALSTACK_EXTRA_CORS_ALLOWED_ORIGINS=http://sample-app.s3.localhost.localstack.cloud:4566 LOCALSTACK_DISABLE_CUSTOM_CORS_APIGATEWAY=1 lstk start --non-interactive
+		@LOCALSTACK_AUTH_TOKEN=$(LOCALSTACK_AUTH_TOKEN) LOCALSTACK_EXTRA_CORS_ALLOWED_ORIGINS=http://sample-app.s3.localhost.localstack.cloud:4566 LOCALSTACK_DISABLE_CUSTOM_CORS_APIGATEWAY=1 lstk start
 
 stop:                 ## Stop the running LocalStack container
 		@echo

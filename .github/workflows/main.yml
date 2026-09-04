@@ -44,7 +44,7 @@ jobs:
           lstk setup aws
 
           # Start LocalStack in the background
-          lstk start --non-interactive
+          lstk start
 
           # Wait for the LocalStack container to become ready
           echo "Waiting for LocalStack startup..."
@@ -116,7 +116,7 @@ jobs:
           docker pull localstack/localstack-pro:latest
 
           # Start LocalStack in the background
-          lstk start --non-interactive
+          lstk start
 
           # Wait for the LocalStack container to become ready
           echo "Waiting for LocalStack startup..."
