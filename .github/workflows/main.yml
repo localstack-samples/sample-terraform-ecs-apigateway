@@ -46,11 +46,6 @@ jobs:
           # Start LocalStack in the background
           lstk start
 
-          # Wait for the LocalStack container to become ready
-          echo "Waiting for LocalStack startup..."
-          lstk status
-
-          echo "Startup complete"
 
       - name: Deploy on Terraform
         run: |
@@ -118,11 +113,6 @@ jobs:
           # Start LocalStack in the background
           lstk start
 
-          # Wait for the LocalStack container to become ready
-          echo "Waiting for LocalStack startup..."
-          lstk status
-
-          echo "Startup complete"
 
       - name: Deploy on CloudFormation
         run: |
