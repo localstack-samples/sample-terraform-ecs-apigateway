@@ -6,6 +6,12 @@ data "aws_region" "current" {
 provider "aws" {
   region = "us-east-1"
   version = "<= 5.8.0"
+
+  default_tags {
+    tags = {
+      aws-apn-id = "pc:9yq38ki5jw5mas7jhjthpgveo"
+    }
+  }
 }
 
 variable "environment_name" {
