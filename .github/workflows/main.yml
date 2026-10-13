@@ -62,14 +62,33 @@ jobs:
       - name: Test the container APIs
         run: make test
 
+      - name: Experiment, register a foodstore container with its port
+        if: failure()
+        run: |
+          docker ps --format '{{.Names}} {{.Image}}'
+          c=$(docker ps --filter ancestor=localstack/ecsapi-demo-foodstore --format '{{.Names}}' | head -1)
+          ip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}' "$c" | awk '{print $1}')
+          echo "container $c ip $ip"
+          sid=$(lstk aws servicediscovery list-services --query "Services[?Name=='foods.foodstore'].Id | [0]" --output text)
+          lstk aws servicediscovery list-instances --service-id "$sid" || true
+          lstk aws servicediscovery register-instance --service-id "$sid" --instance-id ci-manual \
+            --attributes AWS_INSTANCE_IPV4=$ip,AWS_INSTANCE_PORT=8080
+          for i in 1 2 3; do
+            api=$(lstk aws apigatewayv2 get-apis --query "Items[?Name=='ecsapi-demo'].ApiId | [0]" --output text)
+            curl -s -m 10 -w ' HTTP %{http_code}\n' "http://$api.execute-api.localhost.localstack.cloud:4566/foodstore/foods/x"
+            sleep 2
+          done
+          lstk logs | grep -E 'directed to' | tail -5
+
       - name: Show Cloud Map instances, ECS tasks and LocalStack logs
         if: failure()
         run: |
           for id in $(lstk aws servicediscovery list-services --query 'Services[].Id' --output text); do
             lstk aws servicediscovery list-instances --service-id "$id" || true
           done
-          tasks=$(lstk aws ecs list-tasks --cluster ecs-cluster --query 'taskArns' --output text || true)
-          [ -n "$tasks" ] && lstk aws ecs describe-tasks --cluster ecs-cluster --tasks $tasks \
+          cluster=$(lstk aws ecs list-clusters --query 'clusterArns[0]' --output text || true)
+          tasks=$(lstk aws ecs list-tasks --cluster "$cluster" --query 'taskArns' --output text || true)
+          [ -n "$tasks" ] && lstk aws ecs describe-tasks --cluster "$cluster" --tasks $tasks \
             --query 'tasks[].{status: lastStatus, ip: attachments[0].details[?name==`privateIPv4Address`].value | [0], group: group}' || true
           lstk logs | grep -vE 'DescribeServices|ListUserPools|GetApis' | tail -300
 
@@ -146,8 +165,9 @@ jobs:
           for id in $(lstk aws servicediscovery list-services --query 'Services[].Id' --output text); do
             lstk aws servicediscovery list-instances --service-id "$id" || true
           done
-          tasks=$(lstk aws ecs list-tasks --cluster ecs-cluster --query 'taskArns' --output text || true)
-          [ -n "$tasks" ] && lstk aws ecs describe-tasks --cluster ecs-cluster --tasks $tasks \
+          cluster=$(lstk aws ecs list-clusters --query 'clusterArns[0]' --output text || true)
+          tasks=$(lstk aws ecs list-tasks --cluster "$cluster" --query 'taskArns' --output text || true)
+          [ -n "$tasks" ] && lstk aws ecs describe-tasks --cluster "$cluster" --tasks $tasks \
             --query 'tasks[].{status: lastStatus, ip: attachments[0].details[?name==`privateIPv4Address`].value | [0], group: group}' || true
           lstk logs | grep -vE 'DescribeServices|ListUserPools|GetApis' | tail -300
 

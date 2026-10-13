@@ -19,11 +19,15 @@ CLIENT_ID=$(lstk aws cognito-idp list-user-pool-clients --user-pool-id "$POOL_ID
 BASE="http://$API_ID.execute-api.localhost.localstack.cloud:4566"
 echo "API: $BASE"
 
+# Terraform names the cluster and services, CloudFormation generates the names
+CLUSTER=$(lstk aws ecs list-clusters --query 'clusterArns[0]' --output text)
+SERVICES=$(lstk aws ecs list-services --cluster "$CLUSTER" --query 'serviceArns' --output text)
+
 # Wait until both ECS services run at least one task
-for service in service-foodstore-foods service-petstore-pets; do
+for service in $SERVICES; do
   running=0
   for attempt in $(seq 1 "$MAX_ATTEMPTS"); do
-    running=$(lstk aws ecs describe-services --cluster ecs-cluster --services "$service" \
+    running=$(lstk aws ecs describe-services --cluster "$CLUSTER" --services "$service" \
       --query 'services[0].runningCount' --output text)
     [ "$running" != "None" ] && [ "$running" -ge 1 ] && break
     echo "Attempt $attempt/$MAX_ATTEMPTS: $service has no running tasks yet"
@@ -33,7 +37,7 @@ for service in service-foodstore-foods service-petstore-pets; do
     echo "Test failed: $service has no running tasks"
     exit 1
   fi
-  echo "PASS: $service is running $running task(s)"
+  echo "PASS: ${service##*/} is running $running task(s)"
 done
 
 # Print "<status> <body>" for a request
@@ -104,6 +108,8 @@ check_store() {
   fi
   echo "PASS: GET $prefix/$id and the $table table return the stored item"
 }
+
+[ -n "$SERVICES" ] || { echo "Test failed: no ECS services in $CLUSTER"; exit 1; }
 
 check_store foodstore/foods foodId FoodStoreFoods '{"name": "Gourmet Kibble", "brand": "Pawfect Pet Food Co.", "calories": 350}'
 check_store petstore/pets petId PetStorePets '{"name": "Buddy", "breed": "Golden Retriever", "age": 3}'
