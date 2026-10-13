@@ -12,7 +12,9 @@ EMAIL="$RUN_ID@example.com"
 PASSWORD='Ci-Passw0rd!'
 
 API_ID=$(lstk aws apigatewayv2 get-apis --query "Items[?Name=='$API_NAME'].ApiId | [0]" --output text)
+# Terraform names the pool user-pool, the CloudFormation template leaves the name to CloudFormation
 POOL_ID=$(lstk aws cognito-idp list-user-pools --max-results 10 --query "UserPools[?Name=='user-pool'].Id | [0]" --output text)
+[ "$POOL_ID" = "None" ] && POOL_ID=$(lstk aws cognito-idp list-user-pools --max-results 1 --query 'UserPools[0].Id' --output text)
 CLIENT_ID=$(lstk aws cognito-idp list-user-pool-clients --user-pool-id "$POOL_ID" --query 'UserPoolClients[0].ClientId' --output text)
 BASE="http://$API_ID.execute-api.localhost.localstack.cloud:4566"
 echo "API: $BASE"

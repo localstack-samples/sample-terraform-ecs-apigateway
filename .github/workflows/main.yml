@@ -40,6 +40,7 @@ jobs:
       - name: Start LocalStack
         env:
           LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
+          LOCALSTACK_DEBUG: 1
         run: |
           npm install -g @localstack/lstk
           lstk setup aws
@@ -61,9 +62,16 @@ jobs:
       - name: Test the container APIs
         run: make test
 
-      - name: Show LocalStack logs
+      - name: Show Cloud Map instances, ECS tasks and LocalStack logs
         if: failure()
-        run: lstk logs | tail -300
+        run: |
+          for id in $(lstk aws servicediscovery list-services --query 'Services[].Id' --output text); do
+            lstk aws servicediscovery list-instances --service-id "$id" || true
+          done
+          tasks=$(lstk aws ecs list-tasks --cluster ecs-cluster --query 'taskArns' --output text || true)
+          [ -n "$tasks" ] && lstk aws ecs describe-tasks --cluster ecs-cluster --tasks $tasks \
+            --query 'tasks[].{status: lastStatus, ip: attachments[0].details[?name==`privateIPv4Address`].value | [0], group: group}' || true
+          lstk logs | grep -vE 'DescribeServices|ListUserPools|GetApis' | tail -300
 
       - name: Send a Slack notification
         if: failure() || github.event_name != 'pull_request'
@@ -132,9 +140,16 @@ jobs:
       - name: Test the container APIs
         run: make test
 
-      - name: Show LocalStack logs
+      - name: Show Cloud Map instances, ECS tasks and LocalStack logs
         if: failure()
-        run: lstk logs | tail -300
+        run: |
+          for id in $(lstk aws servicediscovery list-services --query 'Services[].Id' --output text); do
+            lstk aws servicediscovery list-instances --service-id "$id" || true
+          done
+          tasks=$(lstk aws ecs list-tasks --cluster ecs-cluster --query 'taskArns' --output text || true)
+          [ -n "$tasks" ] && lstk aws ecs describe-tasks --cluster ecs-cluster --tasks $tasks \
+            --query 'tasks[].{status: lastStatus, ip: attachments[0].details[?name==`privateIPv4Address`].value | [0], group: group}' || true
+          lstk logs | grep -vE 'DescribeServices|ListUserPools|GetApis' | tail -300
 
       - name: Send a Slack notification
         if: failure() || github.event_name != 'pull_request'
