@@ -51,7 +51,7 @@ If you prefer running LocalStack without interactive prompts, you can add the `-
 ## Instructions
 
 You can build and deploy the sample application on LocalStack by running our `Makefile` commands. Run `make terraform-setup` or `make cloudformation-setup` to create the infrastructure on LocalStack. 
-Run `make run` to deploy the S3 Website and get a URL to access the application. Run `make stop` to delete the infrastructure by stopping LocalStack.
+Run `make run` to deploy the S3 Website and get a URL to access the application. Run `make test` to check both container APIs end to end. Run `make stop` to delete the infrastructure by stopping LocalStack.
 
 Alternatively, here are instructions to deploy it manually step-by-step.
 
@@ -135,6 +135,15 @@ Once you have confirmed your Account, skip the email recovery step, as that endp
 
 ![Serverless Container-based APIs with Amazon ECS and Amazon API Gateway Web Interface](./images/interface.png)
 
+### Testing the APIs from the command line
+
+`make test` runs `test.sh`, which calls both container APIs through API Gateway the way the web client does:
+
+- an anonymous `GET` on an unknown item returns an empty object
+- a `PUT` without a token is rejected with `401` by the Cognito JWT authorizer
+- it signs up and confirms a Cognito user, then a `PUT` with the user's access token stores the item
+- a `GET` and the DynamoDB table return the stored item
+
 ### Visualizing your data
 
 Navigate to [**app.localstack.cloud**](https://app.localstack.cloud/) and go to **Resources** -> **DynamoDB**. You can now see the tables created, as well as the data stored in them:
@@ -171,7 +180,7 @@ To ensure everything is set in place now, follow the previous steps of setting t
 
 ## GitHub Action
 
-This application sample hosts an example GitHub Action workflow that starts up LocalStack, deploys the infrastructure, and checks the created resources using `lstk aws`. You can find the workflow in the `.github/workflows/main.yml` file. To run the workflow, you can fork this repository and push a commit to the `main` branch.
+This application sample hosts an example GitHub Action workflow that starts up LocalStack, deploys the infrastructure with Terraform and with CloudFormation, and runs `make test` against each deployment. You can find the workflow in the `.github/workflows/main.yml` file. To run the workflow, you can fork this repository and push a commit to the `main` branch.
 
 Users can adapt this example workflow to run in their own CI environment. LocalStack supports various CI environments, including GitHub Actions, CircleCI, Jenkins, Travis CI, and more. You can find more information about the CI integration in the [LocalStack documentation](https://docs.localstack.cloud/user-guide/ci/).
 
