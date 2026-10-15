@@ -45,7 +45,7 @@ jobs:
           lstk setup aws
 
           # Start LocalStack in the background
-          lstk start --image localstack/localstack-pro:dev
+          LOCALSTACK_DEBUG=1 lstk start --image localstack/localstack-pro:dev
 
 
       - name: Deploy on Terraform
@@ -122,7 +122,7 @@ jobs:
           docker pull localstack/localstack-pro:latest
 
           # Start LocalStack in the background
-          lstk start --image localstack/localstack-pro:dev
+          LOCALSTACK_DEBUG=1 lstk start --image localstack/localstack-pro:dev
 
 
       - name: Deploy on CloudFormation
