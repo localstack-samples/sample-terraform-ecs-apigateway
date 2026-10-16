@@ -21,6 +21,7 @@ cloudformation-setup: ## Set up CloudFormation
 		CF_FILE="ecsapi-demo-cloudformation.yaml"; \
 		echo "Deploying CloudFormation stack 🚀"; \
 		lstk aws cloudformation create-stack --stack-name $$STACK --template-body file://$$CF_FILE; \
+		lstk aws cloudformation wait stack-create-complete --stack-name $$STACK;
 
 run:                  ## Run the sample app
 		@echo "Building Web assets and uploading to local S3 bucket 🪣"; \
@@ -36,6 +37,9 @@ run:                  ## Run the sample app
 			echo "Check out the sample application 🤩"; \
 			echo $$URL
 
+test:                 ## Test both container APIs through API Gateway
+		./test.sh
+
 start:                ## Start LocalStack
 		@test -n "${LOCALSTACK_AUTH_TOKEN}" || (echo "LOCALSTACK_AUTH_TOKEN is not set. Find your token at https://app.localstack.cloud/workspace/auth-token"; exit 1)
 		@LOCALSTACK_AUTH_TOKEN=$(LOCALSTACK_AUTH_TOKEN) LOCALSTACK_EXTRA_CORS_ALLOWED_ORIGINS=http://sample-app.s3.localhost.localstack.cloud:4566 LOCALSTACK_DISABLE_CUSTOM_CORS_APIGATEWAY=1 lstk start
@@ -50,4 +54,4 @@ ready:                ## Confirm LocalStack is ready (lstk start already waits, 
 logs:                 ## Save the logs in a logs.txt file
 		@lstk logs > logs.txt
 
-.PHONY: usage install run start stop ready logs
+.PHONY: usage install terraform-setup cloudformation-setup run test start stop ready logs

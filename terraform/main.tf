@@ -390,7 +390,7 @@ resource "aws_iam_role_policy" "ecs_task_execution_policy" {
 }
 
 resource "aws_service_discovery_private_dns_namespace" "private_dns_namespace" {
-  vpc = aws_vpc.vpc.arn
+  vpc = aws_vpc.vpc.id
   name = var.private_dns_namespace_name
 }
 
@@ -666,7 +666,7 @@ resource "aws_apigatewayv2_api" "http_api" {
             identitySource = "$request.header.Authorization"
             jwtConfiguration = {
               audience = [
-                "${aws_cognito_user_pool_client.user_pool_client.client_secret}"
+                "${aws_cognito_user_pool_client.user_pool_client.id}"
               ]
               # TODO: look into better parity with AWS
               issuer = "http://localhost.localstack.cloud:4566/${aws_cognito_user_pool.user_pool.id}"
@@ -779,7 +779,7 @@ resource "aws_apigatewayv2_stage" "http_api_stage" {
 
 output "api_test_page" {
   description = "The URL of the sample web app client, used to test the sample API"
-  value = join("", ["https://master.d34am23lsz3nvz.amplifyapp.com/?stackregion=", data.aws_region.current.name, "&stackhttpapi=", aws_apigatewayv2_api.http_api.id, "&stackuserpool=", aws_cognito_user_pool.user_pool.arn, "&stackuserpoolclient=", aws_cognito_user_pool_client.user_pool_client.client_secret])
+  value = join("", ["https://master.d34am23lsz3nvz.amplifyapp.com/?stackregion=", data.aws_region.current.name, "&stackhttpapi=", aws_apigatewayv2_api.http_api.id, "&stackuserpool=", aws_cognito_user_pool.user_pool.id, "&stackuserpoolclient=", aws_cognito_user_pool_client.user_pool_client.id])
   sensitive = true
 }
 
