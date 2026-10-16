@@ -22,6 +22,7 @@ echo "API: $BASE"
 # Terraform names the cluster and services, CloudFormation generates the names
 CLUSTER=$(lstk aws ecs list-clusters --query 'clusterArns[0]' --output text)
 SERVICES=$(lstk aws ecs list-services --cluster "$CLUSTER" --query 'serviceArns' --output text)
+[ -n "$SERVICES" ] || { echo "Test failed: no ECS services in $CLUSTER"; exit 1; }
 
 # Wait until both ECS services run at least one task
 for service in $SERVICES; do
@@ -39,6 +40,24 @@ for service in $SERVICES; do
   fi
   echo "PASS: ${service##*/} is running $running task(s)"
 done
+
+# The table a container writes to, from its task definition (CloudFormation generates the table names)
+table_for() {
+  local service task_def
+  for service in $SERVICES; do
+    task_def=$(lstk aws ecs describe-services --cluster "$CLUSTER" --services "$service" \
+      --query 'services[0].taskDefinition' --output text)
+    lstk aws ecs describe-task-definition --task-definition "$task_def" --output text \
+      --query "taskDefinition.containerDefinitions[?contains(image, '$1')].environment[] | [?name=='DynamoDBTable'].value | [0]"
+  done | { grep -vx None || true; } | head -n 1
+}
+FOOD_TABLE=$(table_for ecsapi-demo-foodstore)
+PET_TABLE=$(table_for ecsapi-demo-petstore)
+if [ -z "$FOOD_TABLE" ] || [ -z "$PET_TABLE" ]; then
+  echo "Test failed: no DynamoDBTable in the task definitions (food '$FOOD_TABLE', pet '$PET_TABLE')"
+  exit 1
+fi
+echo "Tables: $FOOD_TABLE, $PET_TABLE"
 
 # Print "<status> <body>" for a request
 call() {
@@ -109,9 +128,7 @@ check_store() {
   echo "PASS: GET $prefix/$id and the $table table return the stored item"
 }
 
-[ -n "$SERVICES" ] || { echo "Test failed: no ECS services in $CLUSTER"; exit 1; }
-
-check_store foodstore/foods foodId FoodStoreFoods '{"name": "Gourmet Kibble", "brand": "Pawfect Pet Food Co.", "calories": 350}'
-check_store petstore/pets petId PetStorePets '{"name": "Buddy", "breed": "Golden Retriever", "age": 3}'
+check_store foodstore/foods foodId "$FOOD_TABLE" '{"name": "Gourmet Kibble", "brand": "Pawfect Pet Food Co.", "calories": 350}'
+check_store petstore/pets petId "$PET_TABLE" '{"name": "Buddy", "breed": "Golden Retriever", "age": 3}'
 
 echo "Test passed: both container APIs serve reads, enforce the authorizer on writes, and persist to DynamoDB"
