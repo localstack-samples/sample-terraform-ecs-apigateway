@@ -44,8 +44,9 @@ jobs:
           npm install -g @localstack/lstk
           lstk setup aws
 
-          # Start LocalStack in the background
-          lstk start
+          # Start LocalStack in the background. The dev image has the API Gateway private integration
+          # fix (request path forwarded to Cloud Map instances); switch back to the default image once a release has it.
+          lstk start --image localstack/localstack-pro:dev
 
 
       - name: Deploy on Terraform
@@ -119,10 +120,11 @@ jobs:
         run: |
           npm install -g @localstack/lstk
           lstk setup aws
-          docker pull localstack/localstack-pro:latest
+          docker pull localstack/localstack-pro:dev
 
-          # Start LocalStack in the background
-          lstk start
+          # Start LocalStack in the background. The dev image has the API Gateway private integration
+          # fix (request path forwarded to Cloud Map instances); switch back to the default image once a release has it.
+          lstk start --image localstack/localstack-pro:dev
 
 
       - name: Deploy on CloudFormation
