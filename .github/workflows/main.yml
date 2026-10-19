@@ -21,6 +21,7 @@ jobs:
   terraform:
     name: Deploy infrastructure using Terraform
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,8 +44,9 @@ jobs:
           npm install -g @localstack/lstk
           lstk setup aws
 
-          # Start LocalStack in the background
-          lstk start
+          # Start LocalStack in the background. The dev image has the API Gateway private integration
+          # fix (request path forwarded to Cloud Map instances); switch back to the default image once a release has it.
+          lstk start --image localstack/localstack-pro:dev
 
 
       - name: Deploy on Terraform
@@ -57,11 +59,20 @@ jobs:
         run: |
           make run
 
-      - name: Check deployed resources
+      - name: Test the container APIs
+        run: make test
+
+      - name: Show Cloud Map instances, ECS tasks and LocalStack logs
+        if: failure()
         run: |
-          sleep 10
-          lstk aws apigatewayv2 get-apis
-          lstk aws cognito-idp list-user-pools --max-results 1
+          for id in $(lstk aws servicediscovery list-services --query 'Services[].Id' --output text); do
+            lstk aws servicediscovery list-instances --service-id "$id" || true
+          done
+          cluster=$(lstk aws ecs list-clusters --query 'clusterArns[0]' --output text || true)
+          tasks=$(lstk aws ecs list-tasks --cluster "$cluster" --query 'taskArns' --output text || true)
+          [ -n "$tasks" ] && lstk aws ecs describe-tasks --cluster "$cluster" --tasks $tasks \
+            --query 'tasks[].{status: lastStatus, ip: attachments[0].details[?name==`privateIPv4Address`].value | [0], group: group}' || true
+          lstk logs | grep -vE 'DescribeServices|ListUserPools|GetApis' | tail -300
 
       - name: Send a Slack notification
         if: failure() || github.event_name != 'pull_request'
@@ -91,6 +102,7 @@ jobs:
   cloudformation:
     name: Deploy infrastructure using CloudFormation
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -108,10 +120,11 @@ jobs:
         run: |
           npm install -g @localstack/lstk
           lstk setup aws
-          docker pull localstack/localstack-pro:latest
+          docker pull localstack/localstack-pro:dev
 
-          # Start LocalStack in the background
-          lstk start
+          # Start LocalStack in the background. The dev image has the API Gateway private integration
+          # fix (request path forwarded to Cloud Map instances); switch back to the default image once a release has it.
+          lstk start --image localstack/localstack-pro:dev
 
 
       - name: Deploy on CloudFormation
@@ -120,16 +133,26 @@ jobs:
           STACK="stack1"
           CF_FILE="ecsapi-demo-cloudformation.yaml"
           lstk aws cloudformation create-stack --stack-name $STACK --template-body file://$CF_FILE
+          lstk aws cloudformation wait stack-create-complete --stack-name $STACK
 
       - name: Deploy Web Application
         run: |
           make run
 
-      - name: Check deployed resources
+      - name: Test the container APIs
+        run: make test
+
+      - name: Show Cloud Map instances, ECS tasks and LocalStack logs
+        if: failure()
         run: |
-          sleep 10
-          lstk aws apigatewayv2 get-apis
-          lstk aws cognito-idp list-user-pools --max-results 1
+          for id in $(lstk aws servicediscovery list-services --query 'Services[].Id' --output text); do
+            lstk aws servicediscovery list-instances --service-id "$id" || true
+          done
+          cluster=$(lstk aws ecs list-clusters --query 'clusterArns[0]' --output text || true)
+          tasks=$(lstk aws ecs list-tasks --cluster "$cluster" --query 'taskArns' --output text || true)
+          [ -n "$tasks" ] && lstk aws ecs describe-tasks --cluster "$cluster" --tasks $tasks \
+            --query 'tasks[].{status: lastStatus, ip: attachments[0].details[?name==`privateIPv4Address`].value | [0], group: group}' || true
+          lstk logs | grep -vE 'DescribeServices|ListUserPools|GetApis' | tail -300
 
       - name: Send a Slack notification
         if: failure() || github.event_name != 'pull_request'
